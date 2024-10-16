@@ -1,13 +1,8 @@
 /**
- * Frogfrogfrog
- * Pippin Barr
+ * mod jam
+ * Junming He
  * 
- * A game of catching flies with your frog-tongue
- * 
- * Instructions:
- * - Move the frog with your mouse
- * - Click to launch the tongue
- * - Catch flies
+ * Let's add some fun things 
  * 
  * Made with p5
  * https://p5js.org/
@@ -15,21 +10,47 @@
 
 "use strict";
 
-// Our frog
+let gameStatement = {
+    currentStatement: undefined,
+
+    //different statement 
+    menu: "menu",
+    level1: "level1",
+    level2: "level2",
+    gameOver: "gameOver",
+    MenuLevel: 1
+}
+
+let mapLayout = {
+    level1_lotus: [],
+    level2_lotus: [],
+
+    level1_river: [],
+    level2_river: [],
+
+    lotusHeight: undefined,
+    lotusOffset: 40
+
+}
+
+
+
+
 const frog = {
-    // The frog's body has a position and size
+
     body: {
         x: 320,
-        y: 520,
+        y: 650,
         size: 150
     },
-    // The frog's tongue has a position, size, speed, and state
+
+
     tongue: {
         x: undefined,
         y: 480,
         size: 20,
         speed: 20,
-        // Determines how the tongue moves each frame
+
         state: "idle" // State can be: idle, outbound, inbound
     }
 };
@@ -43,24 +64,85 @@ const fly = {
     speed: 3
 };
 
-/**
- * Creates the canvas and initializes the fly
- */
+
 function setup() {
-    createCanvas(640, 480);
+    createCanvas(960, 640);
 
     // Give the fly its first random position
     resetFly();
+
+    //Set current statement to menu 
+    gameStatement.currentStatement = gameStatement.menu;
+
+    //collect all the layout data
+    let tmplevel1_origin = (width / 4) / 2;
+    let tmplevel1_gap = width / 4;
+    let tmplevel2_origin = (width / 5) / 2;
+    let tmplevel2_gap = width / 5;
+
+
+    //get map data 
+    for (let i = 0; i < 6; i++) {
+        // level1 lotus
+        if (i < 4) {
+            mapLayout.level1_lotus[i] = tmplevel1_origin + i * tmplevel1_gap;
+        }
+
+        if (i < 5) {
+
+            //level1 river 
+            mapLayout.level1_river[i] = i * tmplevel1_gap;
+
+            //level2 lotus
+            mapLayout.level2_lotus[i] = tmplevel2_origin + i * tmplevel2_gap;
+        }
+
+        //level2 river 
+        mapLayout.level2_river[i] = i * tmplevel2_gap;
+
+        //debug 
+        // console.log("level1 lotus", mapLayout.level1_lotus[i]);
+        // console.log("level1 river", mapLayout.level1_river[i]);
+        // console.log("level2 lotus", mapLayout.level2_lotus[i]);
+        // console.log("level1 river", mapLayout.level2_river[i]);
+    }
+
+    //set lotus height 
+    mapLayout.lotusHeight = height - mapLayout.lotusOffset;
+
+
 }
 
 function draw() {
+
+
     background("#87ceeb");
-    moveFly();
-    drawFly();
-    moveFrog();
-    moveTongue();
-    drawFrog();
-    checkTongueFlyOverlap();
+
+
+    if (gameStatement.currentStatement === gameStatement.menu) {
+        switch (gameStatement.MenuLevel) {
+            case 1:
+                drawLevel1();
+                menuText1();
+                break;
+
+            case 2:
+                drawLevel2();
+                break;
+        }
+
+
+    }
+    // drawLevel2();
+
+
+
+    // moveFly();
+    // drawFly();
+    // moveFrog();
+    // moveTongue();
+    // drawFrog();
+    // checkTongueFlyOverlap();
 }
 
 /**
@@ -163,7 +245,7 @@ function checkTongueFlyOverlap() {
     // Get distance from tongue to fly
     const d = dist(frog.tongue.x, frog.tongue.y, fly.x, fly.y);
     // Check if it's an overlap
-    const eaten = (d < frog.tongue.size/2 + fly.size/2);
+    const eaten = (d < frog.tongue.size / 2 + fly.size / 2);
     if (eaten) {
         // Reset the fly
         resetFly();
@@ -178,5 +260,87 @@ function checkTongueFlyOverlap() {
 function mousePressed() {
     if (frog.tongue.state === "idle") {
         frog.tongue.state = "outbound";
+    }
+}
+
+
+function drawLevel1() {
+
+    for (let i = 0; i < 5; i++) {
+
+        //draw lotus
+        if (i < 4) {
+
+            push();
+            noStroke();
+            fill(182, 233, 6);
+            circle(mapLayout.level1_lotus[i], mapLayout.lotusHeight, 15);
+            pop();
+
+        }
+
+
+        //draw river gap
+        push();
+        strokeWeight(2);
+        stroke(0, 0, 0);
+        line(mapLayout.level1_river[i], 0, mapLayout.level1_river[i], height);
+        pop();
+    }
+}
+
+
+function drawLevel2() {
+
+    for (let i = 0; i < 6; i++) {
+        //draw lotus 
+        if (i < 5) {
+            push();
+            noStroke();
+            fill(182, 233, 6);
+            circle(mapLayout.level2_lotus[i], mapLayout.lotusHeight, 15);
+            pop();
+        }
+
+        //draw river gap 
+        push();
+        strokeWeight(2);
+        stroke(0, 0, 0);
+        line(mapLayout.level2_river[i], 0, mapLayout.level2_river[i], height);
+        pop();
+    }
+
+}
+
+function menuText1() {
+    push();
+    textSize(40);
+    textAlign(CENTER)
+    text("Press ↑ or ↓ to choose level", width / 2, height / 2);
+    text("ENTRY to star", width / 2, height / 2 + 45);
+    pop();
+}
+
+
+function keyReleased() {
+    if (gameStatement.currentStatement === gameStatement.menu) {
+
+        if (keyCode === UP_ARROW) {
+            if (gameStatement.MenuLevel < 2) {
+                gameStatement.MenuLevel += 1;
+            }
+            else {
+                gameStatement.MenuLevel = 1;
+            }
+        }
+
+        if (keyCode === DOWN_ARROW) {
+            if (gameStatement.MenuLevel >= 2) {
+                gameStatement.MenuLevel -= 1;
+            }
+            else {
+                gameStatement.MenuLevel = 2;
+            }
+        }
     }
 }
