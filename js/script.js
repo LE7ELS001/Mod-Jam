@@ -15,8 +15,7 @@ let gameStatement = {
 
     //different statement 
     menu: "menu",
-    level1: "level1",
-    level2: "level2",
+    gameStart: "gameStart",
     gameOver: "gameOver",
     MenuLevel: 1
 }
@@ -29,8 +28,18 @@ let mapLayout = {
     level2_river: [],
 
     lotusHeight: undefined,
-    lotusOffset: 40
 
+    lotusOffset1: 30,
+    lotusOffset2: 20
+
+}
+
+let lotus = {
+    R: 182,
+    G: 233,
+    B: 6,
+    size1: 230,
+    size2: 180
 }
 
 
@@ -39,19 +48,35 @@ let mapLayout = {
 const frog = {
 
     body: {
-        x: 320,
-        y: 650,
-        size: 150
+        x1: 320,
+        y1: 650,
+        size1: 150,
+
+        x2: 280,
+        y2: 640,
+        size2: 100,
+
+        locationX: 0
     },
 
 
     tongue: {
         x: undefined,
-        y: 480,
+        y: undefined,
         size: 20,
         speed: 20,
+        tmpY: undefined,
 
         state: "idle" // State can be: idle, outbound, inbound
+    },
+
+    eyes: {
+        x1: undefined,
+        y1: undefined,
+        x2: undefined,
+        y2: undefined,
+        size: undefined,
+
     }
 };
 
@@ -107,8 +132,7 @@ function setup() {
         // console.log("level1 river", mapLayout.level2_river[i]);
     }
 
-    //set lotus height 
-    mapLayout.lotusHeight = height - mapLayout.lotusOffset;
+
 
 
 }
@@ -119,30 +143,55 @@ function draw() {
     background("#87ceeb");
 
 
+    // in menu statement 
     if (gameStatement.currentStatement === gameStatement.menu) {
         switch (gameStatement.MenuLevel) {
             case 1:
+
                 drawLevel1();
                 menuText1();
+                setTongueY();
+
                 break;
 
             case 2:
+                setTongueY();
                 drawLevel2();
+                menuText2();
+
+
                 break;
         }
-
-
     }
-    // drawLevel2();
 
 
+    // in game statement 
+    if (gameStatement.currentStatement === gameStatement.gameStart) {
+        switch (gameStatement.MenuLevel) {
+            case 1:
+                drawLevel1();
+                drawFly();
 
-    // moveFly();
-    // drawFly();
-    // moveFrog();
-    // moveTongue();
-    // drawFrog();
-    // checkTongueFlyOverlap();
+                drawFrog();
+
+                moveFly();
+                // moveFrog();
+                moveTongue();
+                checkTongueFlyOverlap();
+                break;
+
+            case 2:
+                drawLevel2();;
+                moveFly();
+                drawFly();
+                moveFrog();
+                moveTongue();
+                drawFrog();
+                checkTongueFlyOverlap();
+                break;
+        }
+    }
+
 }
 
 /**
@@ -162,10 +211,11 @@ function moveFly() {
  * Draws the fly as a black circle
  */
 function drawFly() {
+
     push();
     noStroke();
     fill("#000000");
-    ellipse(fly.x, fly.y, fly.size);
+    ellipse(fly.x1, fly.y1, fly.size);
     pop();
 }
 
@@ -181,15 +231,24 @@ function resetFly() {
  * Moves the frog to the mouse position on x
  */
 function moveFrog() {
-    frog.body.x = mouseX;
+
+    switch (gameStatement.MenuLevel) {
+        case 1:
+            //frog.body.x1 = mouseX;
+            break;
+
+        case 2:
+            //frog.body.x2 = mouseX;
+            break;
+    }
+
 }
 
 /**
  * Handles moving the tongue based on its state
  */
 function moveTongue() {
-    // Tongue matches the frog's x
-    frog.tongue.x = frog.body.x;
+
     // If the tongue is idle, it doesn't do anything
     if (frog.tongue.state === "idle") {
         // Do nothing
@@ -206,7 +265,7 @@ function moveTongue() {
     else if (frog.tongue.state === "inbound") {
         frog.tongue.y += frog.tongue.speed;
         // The tongue stops if it hits the bottom
-        if (frog.tongue.y >= height) {
+        if (frog.tongue.y >= frog.tongue.tmpY) {
             frog.tongue.state = "idle";
         }
     }
@@ -216,26 +275,99 @@ function moveTongue() {
  * Displays the tongue (tip and line connection) and the frog (body)
  */
 function drawFrog() {
-    // Draw the tongue tip
-    push();
-    fill("#ff0000");
-    noStroke();
-    ellipse(frog.tongue.x, frog.tongue.y, frog.tongue.size);
-    pop();
 
-    // Draw the rest of the tongue
-    push();
-    stroke("#ff0000");
-    strokeWeight(frog.tongue.size);
-    line(frog.tongue.x, frog.tongue.y, frog.body.x, frog.body.y);
-    pop();
 
     // Draw the frog's body
-    push();
-    fill("#00ff00");
-    noStroke();
-    ellipse(frog.body.x, frog.body.y, frog.body.size);
-    pop();
+    if (gameStatement.MenuLevel == 1) {
+
+
+        // Draw the tongue tip
+        frog.tongue.x = frog.body.x1;
+
+        push();
+        fill("#ff0000");
+        noStroke();
+        ellipse(frog.tongue.x, frog.tongue.y, frog.tongue.size);
+        pop();
+
+        // Draw the rest of the tongue
+        push();
+        stroke("#ff0000");
+        strokeWeight(frog.tongue.size);
+        line(frog.tongue.x, frog.tongue.y, frog.body.x1, frog.body.y1);
+        pop();
+
+
+        //frog body 
+        frog.body.x1 = mapLayout.level1_lotus[frog.body.locationX];
+
+        push();
+        fill("#00ff00");
+        noStroke();
+        ellipse(frog.body.x1, frog.body.y1, frog.body.size1);
+        pop();
+
+        //draw the frog's eyes 
+        frog.eyes.x1 = frog.body.x1 - frog.body.size1 / 2.8;
+        frog.eyes.x2 = frog.body.x1 + frog.body.size1 / 2.8;
+
+        frog.eyes.y1 = frog.body.y1 - frog.body.size1 / 2.8;
+        frog.eyes.y2 = frog.body.y1 - frog.body.size1 / 2.8;
+
+        frog.eyes.size = frog.body.size1 / 4;
+
+        console.log(frog.eyes.x1);
+        push();
+        fill(0);
+        ellipse(frog.eyes.x1, frog.eyes.y1, frog.eyes.size);
+        ellipse(frog.eyes.x2, frog.eyes.y2, frog.eyes.size);
+        pop();
+    }
+
+    if (gameStatement.MenuLevel == 2) {
+        // Draw the tongue tip
+        frog.tongue.x = frog.body.x2;
+
+        push();
+        fill("#ff0000");
+        noStroke();
+        ellipse(frog.tongue.x, frog.tongue.y, frog.tongue.size);
+        pop();
+
+        // Draw the rest of the tongue
+        push();
+        stroke("#ff0000");
+        strokeWeight(frog.tongue.size);
+        line(frog.tongue.x, frog.tongue.y, frog.body.x2, frog.body.y2);
+        pop();
+
+
+        //frog body 
+        frog.body.x2 = mapLayout.level2_lotus[frog.body.locationX];
+
+        push();
+        fill("#00ff00");
+        noStroke();
+        ellipse(frog.body.x2, frog.body.y2, frog.body.size2);
+        pop();
+
+        //draw the frog's eyes 
+        frog.eyes.x1 = frog.body.x2 - frog.body.size2 / 2.8;
+        frog.eyes.x2 = frog.body.x2 + frog.body.size2 / 2.8;
+
+        frog.eyes.y1 = frog.body.y2 - frog.body.size2 / 2.8;
+        frog.eyes.y2 = frog.body.y2 - frog.body.size2 / 2.8;
+
+        frog.eyes.size = frog.body.size2 / 4;
+
+
+        push();
+        fill(0);
+        ellipse(frog.eyes.x1, frog.eyes.y1, frog.eyes.size);
+        ellipse(frog.eyes.x2, frog.eyes.y2, frog.eyes.size);
+        pop();
+    }
+
 }
 
 /**
@@ -266,6 +398,9 @@ function mousePressed() {
 
 function drawLevel1() {
 
+    //set lotus height
+    mapLayout.lotusHeight = height - mapLayout.lotusOffset1;
+
     for (let i = 0; i < 5; i++) {
 
         //draw lotus
@@ -273,8 +408,8 @@ function drawLevel1() {
 
             push();
             noStroke();
-            fill(182, 233, 6);
-            circle(mapLayout.level1_lotus[i], mapLayout.lotusHeight, 15);
+            fill(lotus.R, lotus.G, lotus.B);
+            circle(mapLayout.level1_lotus[i], mapLayout.lotusHeight, lotus.size1);
             pop();
 
         }
@@ -292,13 +427,16 @@ function drawLevel1() {
 
 function drawLevel2() {
 
+    //set lotus height
+    mapLayout.lotusHeight = height - mapLayout.lotusOffset2;
+
     for (let i = 0; i < 6; i++) {
         //draw lotus 
         if (i < 5) {
             push();
             noStroke();
-            fill(182, 233, 6);
-            circle(mapLayout.level2_lotus[i], mapLayout.lotusHeight, 15);
+            fill(lotus.R, lotus.G, lotus.B);
+            circle(mapLayout.level2_lotus[i], mapLayout.lotusHeight, lotus.size2);
             pop();
         }
 
@@ -317,10 +455,18 @@ function menuText1() {
     textSize(40);
     textAlign(CENTER)
     text("Press ↑ or ↓ to choose level", width / 2, height / 2);
-    text("ENTRY to star", width / 2, height / 2 + 45);
+    text("ENTRY to start", width / 2, height / 2 + 45);
     pop();
 }
 
+function menuText2() {
+    push();
+    textSize(40);
+    textAlign(CENTER)
+    text("Press ↑ or ↓ to choose level", width / 2, height / 2);
+    text("ENTRY to start", width / 2, height / 2 + 45);
+    pop();
+}
 
 function keyReleased() {
     if (gameStatement.currentStatement === gameStatement.menu) {
@@ -342,5 +488,62 @@ function keyReleased() {
                 gameStatement.MenuLevel = 2;
             }
         }
+
+        if (keyCode === ENTER) {
+            gameStatement.currentStatement = gameStatement.gameStart;
+        }
+    }
+}
+
+function keyPressed() {
+    if (gameStatement.currentStatement === gameStatement.gameStart) {
+        if (keyCode == LEFT_ARROW && gameStatement.MenuLevel == 1) {
+            if (frog.body.locationX <= 0) {
+                frog.body.locationX = 3;
+            }
+            else {
+                frog.body.locationX -= 1;
+            }
+        }
+        if (keyCode == RIGHT_ARROW && gameStatement.MenuLevel == 1) {
+            if (frog.body.locationX >= 3) {
+                frog.body.locationX = 0;
+            }
+            else {
+                frog.body.locationX += 1;
+            }
+        }
+
+        if (keyCode == LEFT_ARROW && gameStatement.MenuLevel == 2) {
+            if (frog.body.locationX <= 0) {
+                frog.body.locationX = 4;
+            }
+            else {
+                frog.body.locationX -= 1;
+            }
+        }
+        if (keyCode == RIGHT_ARROW && gameStatement.MenuLevel == 2) {
+            if (frog.body.locationX >= 4) {
+                frog.body.locationX = 0;
+            }
+            else {
+                frog.body.locationX += 1;
+            }
+        }
+    }
+
+}
+
+function setTongueY() {
+    if (gameStatement.MenuLevel === 1) {
+
+        //set togue.y and tmpY locations
+        frog.tongue.y = frog.body.y1 - frog.body.size1 / 2;
+        frog.tongue.tmpY = frog.tongue.y;
+    }
+    else {
+        //set togue.y and tmpY locations
+        frog.tongue.y = frog.body.y2 - frog.body.size2 / 2;
+        frog.tongue.tmpY = frog.tongue.y;
     }
 }
