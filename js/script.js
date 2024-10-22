@@ -98,12 +98,8 @@ let normalFly = {
 }
 
 
-const fly = {
-    x: 0,
-    y: 0, // Will be random
-    size: 10,
-    speed: 3 // will be random 
-};
+//score 
+let playerScore = undefined;
 
 
 function setup() {
@@ -149,6 +145,9 @@ function setup() {
 
         //normal flies speed 
         normalFly.speed[i] = 0;
+
+        //set playerScore
+        playerScore = 0;
 
         //debug 
         // console.log("level1 lotus", mapLayout.level1_lotus[i]);
@@ -204,6 +203,7 @@ function draw() {
 
                 drawFrog();
                 drawFly();
+                ScoreDisplay();
 
                 moveFly();
                 moveTongue();
@@ -215,6 +215,7 @@ function draw() {
 
                 moveFly();
                 drawFly();
+                ScoreDisplay();
 
                 moveTongue();
                 drawFrog();
@@ -462,7 +463,7 @@ function checkTongueFlyOverlap() {
             const d = dist(frog.tongue.x, frog.tongue.y, normalFly.level1_X[i], normalFly.level1_Y[i]);
 
             // Check if it's an overlap
-            const eaten = (d < frog.tongue.size / 2 + fly.size / 2);
+            const eaten = (d < frog.tongue.size / 2 + normalFly.size / 2);
 
             if (eaten) {
                 // Reset the fly
@@ -470,6 +471,7 @@ function checkTongueFlyOverlap() {
                 normalFly.speed[i] = 0;
                 // Bring back the tongue
                 frog.tongue.state = "inbound";
+                playerScore += 1;
             }
         }
     }
@@ -479,7 +481,7 @@ function checkTongueFlyOverlap() {
             const d = dist(frog.tongue.x, frog.tongue.y, normalFly.level2_X[i], normalFly.level2_Y[i]);
 
             // Check if it's an overlap
-            const eaten = (d < frog.tongue.size / 2 + fly.size / 2);
+            const eaten = (d < frog.tongue.size / 2 + normalFly.size / 2);
 
             if (eaten) {
                 // Reset the fly
@@ -487,6 +489,7 @@ function checkTongueFlyOverlap() {
                 normalFly.speed[i] = 0;
                 // Bring back the tongue
                 frog.tongue.state = "inbound";
+                playerScore += 1;
             }
         }
     }
@@ -678,4 +681,16 @@ function setTongueY() {
         frog.tongue.y = frog.body.y2 - frog.body.size2 / 2.4;
         frog.tongue.tmpY = frog.tongue.y;
     }
+}
+
+function ScoreDisplay() {
+    push();
+    fill(255);
+    stroke(0);
+    strokeWeight(2);
+    textSize(50);
+    textAlign(RIGHT);
+    textAlign(TOP);
+    text(playerScore, width - 30, 50);
+    pop();
 }
