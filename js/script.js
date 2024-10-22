@@ -80,13 +80,29 @@ const frog = {
     }
 };
 
-// Our fly
-// Has a position, size, and speed of horizontal movement
+
+// normal fly
+let normalFly = {
+
+    size: 10,
+    speed: [],
+
+    level1_X: [],
+    level1_Y: [],
+
+    level2_X: [],
+    level2_Y: [],
+
+
+
+}
+
+
 const fly = {
     x: 0,
-    y: 200, // Will be random
+    y: 0, // Will be random
     size: 10,
-    speed: 3
+    speed: 3 // will be random 
 };
 
 
@@ -111,6 +127,9 @@ function setup() {
         // level1 lotus
         if (i < 4) {
             mapLayout.level1_lotus[i] = tmplevel1_origin + i * tmplevel1_gap;
+
+            // normal flies y position 
+            normalFly.level1_Y[i] = 0;
         }
 
         if (i < 5) {
@@ -125,12 +144,24 @@ function setup() {
         //level2 river 
         mapLayout.level2_river[i] = i * tmplevel2_gap;
 
+        // normal flies y position 
+        normalFly.level2_Y[i] = 0;
+
+        //normal flies speed 
+        normalFly.speed[i] = 0;
+
         //debug 
         // console.log("level1 lotus", mapLayout.level1_lotus[i]);
         // console.log("level1 river", mapLayout.level1_river[i]);
         // console.log("level2 lotus", mapLayout.level2_lotus[i]);
         // console.log("level1 river", mapLayout.level2_river[i]);
     }
+
+    //normal flies x position 
+    normalFly.level1_X = mapLayout.level1_lotus;
+    normalFly.level2_X = mapLayout.level2_lotus;
+
+
 
 
 
@@ -170,21 +201,21 @@ function draw() {
         switch (gameStatement.MenuLevel) {
             case 1:
                 drawLevel1();
-                drawFly();
 
                 drawFrog();
+                drawFly();
 
                 moveFly();
-                // moveFrog();
                 moveTongue();
                 checkTongueFlyOverlap();
                 break;
 
             case 2:
-                drawLevel2();;
+                drawLevel2();
+
                 moveFly();
                 drawFly();
-                moveFrog();
+
                 moveTongue();
                 drawFrog();
                 checkTongueFlyOverlap();
@@ -194,17 +225,42 @@ function draw() {
 
 }
 
-/**
- * Moves the fly according to its speed
- * Resets the fly if it gets all the way to the right
- */
+//normal fly moving 
 function moveFly() {
-    // Move the fly
-    fly.x += fly.speed;
-    // Handle the fly going off the canvas
-    if (fly.x > width) {
-        resetFly();
+
+    if (gameStatement.MenuLevel == 1) {
+        for (let i = 0; i < 4; i++) {
+            if (normalFly.speed[i] == 0) {
+
+                normalFly.speed[i] = int(random(3, 8));
+            }
+
+            if (normalFly.level1_Y[i] >= height) {
+                resetFly(gameStatement.MenuLevel, i);
+                normalFly.speed[i] = 0;
+            }
+
+            normalFly.level1_Y[i] += normalFly.speed[i];
+        }
     }
+    else {
+        for (let i = 0; i < 5; i++) {
+            if (normalFly.speed[i] == 0) {
+
+                normalFly.speed[i] = int(random(3, 8));
+            }
+
+
+            if (normalFly.level2_Y[i] >= height) {
+                resetFly(gameStatement.MenuLevel, i);
+                normalFly.speed[i] = 0;
+            }
+
+            normalFly.level2_Y[i] += normalFly.speed[i];
+
+        }
+    }
+
 }
 
 /**
@@ -212,19 +268,45 @@ function moveFly() {
  */
 function drawFly() {
 
-    push();
-    noStroke();
-    fill("#000000");
-    ellipse(fly.x1, fly.y1, fly.size);
-    pop();
+    //level 1 
+    if (gameStatement.MenuLevel == 1) {
+
+        push();
+        noStroke();
+        fill("#000000");
+
+        for (let i = 0; i < 4; i++) {
+
+            ellipse(normalFly.level1_X[i], normalFly.level1_Y[i], normalFly.size);
+        }
+        pop();
+    }
+
+    // level 2 
+    if (gameStatement.MenuLevel == 2) {
+        push();
+        noStroke();
+        fill("#000000");
+
+        for (let i = 0; i < 5; i++) {
+
+            ellipse(normalFly.level2_X[i], normalFly.level2_Y[i], normalFly.size);
+        }
+        pop();
+    }
 }
 
 /**
  * Resets the fly to the left with a random y
  */
-function resetFly() {
-    fly.x = 0;
-    fly.y = random(0, 300);
+function resetFly(levelNumber, arrayNumber) {
+    if (levelNumber == 1) {
+        normalFly.level1_Y[arrayNumber] = 0;
+    }
+    else {
+        normalFly.level2_Y[arrayNumber] = 0;
+    }
+
 }
 
 /**
@@ -374,26 +456,44 @@ function drawFrog() {
  * Handles the tongue overlapping the fly
  */
 function checkTongueFlyOverlap() {
-    // Get distance from tongue to fly
-    const d = dist(frog.tongue.x, frog.tongue.y, fly.x, fly.y);
-    // Check if it's an overlap
-    const eaten = (d < frog.tongue.size / 2 + fly.size / 2);
-    if (eaten) {
-        // Reset the fly
-        resetFly();
-        // Bring back the tongue
-        frog.tongue.state = "inbound";
+    if (gameStatement.MenuLevel == 1) {
+        for (let i = 0; i < 4; i++) {
+            // Get distance from tongue to fly
+            const d = dist(frog.tongue.x, frog.tongue.y, normalFly.level1_X[i], normalFly.level1_Y[i]);
+
+            // Check if it's an overlap
+            const eaten = (d < frog.tongue.size / 2 + fly.size / 2);
+
+            if (eaten) {
+                // Reset the fly
+                resetFly(gameStatement.MenuLevel, i);
+                normalFly.speed[i] = 0;
+                // Bring back the tongue
+                frog.tongue.state = "inbound";
+            }
+        }
+    }
+    else {
+        for (let i = 0; i < 5; i++) {
+            // Get distance from tongue to fly
+            const d = dist(frog.tongue.x, frog.tongue.y, normalFly.level2_X[i], normalFly.level2_Y[i]);
+
+            // Check if it's an overlap
+            const eaten = (d < frog.tongue.size / 2 + fly.size / 2);
+
+            if (eaten) {
+                // Reset the fly
+                resetFly(gameStatement.MenuLevel, i);
+                normalFly.speed[i] = 0;
+                // Bring back the tongue
+                frog.tongue.state = "inbound";
+            }
+        }
     }
 }
 
-/**
- * Launch the tongue on click (if it's not launched yet)
- */
-function mousePressed() {
-    if (frog.tongue.state === "idle") {
-        frog.tongue.state = "outbound";
-    }
-}
+
+
 
 
 function drawLevel1() {
@@ -497,37 +597,69 @@ function keyReleased() {
 
 function keyPressed() {
     if (gameStatement.currentStatement === gameStatement.gameStart) {
-        if (keyCode == LEFT_ARROW && gameStatement.MenuLevel == 1) {
-            if (frog.body.locationX <= 0) {
-                frog.body.locationX = 3;
+
+        if (gameStatement.MenuLevel == 1) {
+
+            //frog move left in level1
+            if (keyCode == LEFT_ARROW) {
+                if (frog.body.locationX <= 0) {
+                    frog.body.locationX = 3;
+                }
+                else {
+                    frog.body.locationX -= 1;
+                }
             }
-            else {
-                frog.body.locationX -= 1;
+            //frog move right in level1
+            if (keyCode == RIGHT_ARROW) {
+                if (frog.body.locationX >= 3) {
+                    frog.body.locationX = 0;
+                }
+                else {
+                    frog.body.locationX += 1;
+                }
             }
-        }
-        if (keyCode == RIGHT_ARROW && gameStatement.MenuLevel == 1) {
-            if (frog.body.locationX >= 3) {
-                frog.body.locationX = 0;
-            }
-            else {
-                frog.body.locationX += 1;
+            //frog launch tongue in level1 (32 is 'space' key keycode)
+            if (keyCode == 32) {
+                if (frog.tongue.state === "idle") {
+                    frog.tongue.state = "outbound";
+                }
+                //debug
+                //console.log("press space")
+
             }
         }
 
-        if (keyCode == LEFT_ARROW && gameStatement.MenuLevel == 2) {
-            if (frog.body.locationX <= 0) {
-                frog.body.locationX = 4;
+        if (gameStatement.MenuLevel == 2) {
+
+            //frog move left in level2
+            if (keyCode == LEFT_ARROW) {
+                if (frog.body.locationX <= 0) {
+                    frog.body.locationX = 4;
+                }
+                else {
+                    frog.body.locationX -= 1;
+                }
             }
-            else {
-                frog.body.locationX -= 1;
+
+            //frog move right in level2
+            if (keyCode == RIGHT_ARROW) {
+                if (frog.body.locationX >= 4) {
+                    frog.body.locationX = 0;
+                }
+                else {
+                    frog.body.locationX += 1;
+                }
             }
-        }
-        if (keyCode == RIGHT_ARROW && gameStatement.MenuLevel == 2) {
-            if (frog.body.locationX >= 4) {
-                frog.body.locationX = 0;
-            }
-            else {
-                frog.body.locationX += 1;
+
+            //frog launch tongue in level2
+            if (keyCode == 32) {
+                if (frog.tongue.state === "idle") {
+                    frog.tongue.state = "outbound";
+                }
+
+                //debug
+                //console.log("press space")
+
             }
         }
     }
@@ -538,12 +670,12 @@ function setTongueY() {
     if (gameStatement.MenuLevel === 1) {
 
         //set togue.y and tmpY locations
-        frog.tongue.y = frog.body.y1 - frog.body.size1 / 2;
+        frog.tongue.y = frog.body.y1 - frog.body.size1 / 2.3;
         frog.tongue.tmpY = frog.tongue.y;
     }
     else {
         //set togue.y and tmpY locations
-        frog.tongue.y = frog.body.y2 - frog.body.size2 / 2;
+        frog.tongue.y = frog.body.y2 - frog.body.size2 / 2.4;
         frog.tongue.tmpY = frog.tongue.y;
     }
 }
