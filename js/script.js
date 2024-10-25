@@ -87,6 +87,15 @@ let normalFly;
 // poison fly 
 let poisonFly;
 
+//water ball 
+let waterBall = {
+    x: 0,
+    y: 0,
+    size: 30,
+    speed: 20,
+    state: "idle" // include "idle" "Launch" 
+}
+
 
 //score 
 let playerScore = undefined;
@@ -198,6 +207,7 @@ function draw() {
                 drawLevel1();
                 menuText1();
                 setTongueY();
+                setWaterBallLocation();
 
                 break;
 
@@ -205,6 +215,7 @@ function draw() {
                 setTongueY();
                 drawLevel2();
                 menuText2();
+                setWaterBallLocation();
 
 
                 break;
@@ -217,38 +228,28 @@ function draw() {
         switch (gameStatement.MenuLevel) {
             case 1:
                 drawLevel1();
-
-                drawFrog();
-                drawFly(normalFly);
-                drawFly(poisonFly);
-                ScoreDisplay();
-
-                moveFly(normalFly);
-                moveFly(poisonFly);
-
-                moveTongue();
-                checkTongueFlyOverlap(normalFly);
-                checkTongueFlyOverlap(poisonFly);
                 break;
 
             case 2:
                 drawLevel2();
-
-                drawFly(normalFly);
-                drawFly(poisonFly);
-                ScoreDisplay();
-
-
-                moveFly(normalFly);
-                moveFly(poisonFly);
-
-
-                moveTongue();
-                drawFrog();
-                checkTongueFlyOverlap(normalFly);
-                checkTongueFlyOverlap(poisonFly);
                 break;
         }
+
+        drawFly(normalFly);
+        drawFly(poisonFly);
+        drawFrog();
+        drawWaterBall();
+        ScoreDisplay();
+
+        moveFly(normalFly);
+        moveFly(poisonFly);
+
+        moveTongue();
+        MoveWaterBall();
+        checkTongueFlyOverlap(normalFly);
+        checkTongueFlyOverlap(poisonFly);
+        checkWaterBallFlyOverlap(normalFly);
+        checkWaterBallFlyOverlap(poisonFly);
     }
 
 }
@@ -490,7 +491,7 @@ function checkTongueFlyOverlap(fly) {
             const d = dist(frog.tongue.x, frog.tongue.y, fly.level1_X[i], fly.level1_Y[i]);
 
             // Check if it's an overlap
-            const eaten = (d < frog.tongue.size / 2 + normalFly.size / 2);
+            const eaten = (d < frog.tongue.size / 2 + fly.size / 2);
 
             if (eaten) {
                 // Reset the fly
@@ -657,6 +658,8 @@ function keyPressed() {
                 //console.log("press space")
 
             }
+
+
         }
 
         if (gameStatement.MenuLevel == 2) {
@@ -692,6 +695,14 @@ function keyPressed() {
 
             }
         }
+    }
+
+    if (key.toLowerCase() === "x") {
+        if (frog.tongue.state === "idle") {
+            waterBall.state = "Launch";
+
+        }
+
     }
 
 }
@@ -744,6 +755,105 @@ function createFly(size, color, maxspeed, minspeed, score) {
     return fly;
 }
 
-function drawPoisonFly() {
+function setWaterBallLocation() {
+    if (gameStatement.MenuLevel == 1) {
+        waterBall.y = frog.body.y1 - frog.body.size1 / 2.5;
+
+    }
+    else {
+        waterBall.y = frog.body.y2 - frog.body.size2 / 3;
+
+    }
+}
+
+
+
+
+function drawWaterBall() {
+    if (gameStatement.MenuLevel == 1 && waterBall.state == "idle") {
+
+        waterBall.x = frog.body.x1;
+
+    }
+    else if (gameStatement.MenuLevel == 2 && waterBall.state == "idle") {
+        waterBall.x = frog.body.x2;
+    }
+    push();
+    noStroke();
+    fill("#0482DB");
+    ellipse(waterBall.x, waterBall.y, waterBall.size);
+    pop();
+}
+
+function MoveWaterBall() {
+
+    if (waterBall.state === "Launch") {
+
+        waterBall.y -= waterBall.speed;
+    }
+
+
 
 }
+
+
+function checkWaterBallFlyOverlap(fly) {
+    if (gameStatement.MenuLevel == 1) {
+        for (let i = 0; i < 4; i++) {
+            // Get distance from water ball to fly
+            const d = dist(waterBall.x, waterBall.y, fly.level1_X[i], fly.level1_Y[i]);
+
+            // Check if it's an overlap
+            const hit = (d < waterBall.size / 2 + fly.size / 2);
+
+            if (hit) {
+                // Reset the fly
+                resetFly(fly, gameStatement.MenuLevel, i);
+                fly.speed[i] = 0;
+                // reset water ball
+                waterBall.state = "idle";
+                setWaterBallLocation();
+
+
+                if (fly.score > 0) {
+                    //you kill a normal fly 
+                }
+                else {
+
+                    playerScore += -(fly.score);
+                }
+            }
+        }
+    }
+    else {
+        for (let i = 0; i < 5; i++) {
+            // Get distance from waterball to fly
+            const d = dist(waterBall.x, waterBall.y, fly.level2_X[i], fly.level2_Y[i]);
+
+            // Check if it's an overlap
+            const hit = (d < waterBall.size / 2 + fly.size / 2);
+
+            if (hit) {
+                // Reset the fly
+                resetFly(fly, gameStatement.MenuLevel, i);
+                fly.speed[i] = 0;
+                // Bring back the tongue
+                waterBall.state = "idle";
+                setWaterBallLocation();
+
+                if (fly.score > 0) {
+                    // you kill a normal fly, in hard level, reduce your score 
+                    playerScore -= fly.score;
+
+                }
+                else {
+
+                    playerScore += -(fly.score);
+                }
+            }
+        }
+    }
+}
+
+
+
