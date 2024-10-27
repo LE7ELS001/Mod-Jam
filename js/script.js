@@ -44,7 +44,7 @@ let lotus = {
 
 
 
-
+// frog data
 const frog = {
 
     body: {
@@ -56,6 +56,19 @@ const frog = {
         y2: 640,
         size2: 100,
 
+        R: 0,
+        G: 0,
+        B: 0,
+
+
+        defaultR: 92,
+        defaultG: 240,
+        defaultB: 24,
+
+        fadingSpeed1: 0.08,
+        fadingSpeed2: 0.12,
+
+
         locationX: 0
     },
 
@@ -66,6 +79,18 @@ const frog = {
         size: 20,
         speed: 20,
         tmpY: undefined,
+
+
+
+        R: 0,
+        G: 0,
+        B: 0,
+
+        defaultR: 240,
+        defaultG: 6,
+        defaultB: 0,
+
+
 
         state: "idle" // State can be: idle, outbound, inbound
     },
@@ -100,18 +125,29 @@ let waterBall = {
 //score 
 let playerScore = undefined;
 
+//color change value 
+let level_add = 5;
+let level1_substract = 0.5;
+let level2_substract = 0.7;
+
+//timer 
+let playingTime = 60 * 1000;
+let setTimerOrNot = true;
+
 
 function setup() {
     createCanvas(960, 640);
 
     //createflies
-    normalFly = createFly(10, "black", 8, 3, 1);
-    poisonFly = createFly(20, "green", 5, 3, -1);
+    normalFly = createFly(10, "black", 6, 2, 1);
+    poisonFly = createFly(20, "green", 4, 2, -1);
+
+
+    //SET DEFAULT COLOR
+    setFrogDefaultColor();
 
 
 
-    // // Give the fly its first random position
-    // resetFly();
 
     //Set current statement to menu 
     gameStatement.currentStatement = gameStatement.menu;
@@ -201,30 +237,43 @@ function draw() {
 
     // in menu statement 
     if (gameStatement.currentStatement === gameStatement.menu) {
+
+
+        setTimerOrNot = true;
+
         switch (gameStatement.MenuLevel) {
             case 1:
 
                 drawLevel1();
                 menuText1();
-                setTongueY();
-                setWaterBallLocation();
+
 
                 break;
 
             case 2:
-                setTongueY();
                 drawLevel2();
                 menuText2();
-                setWaterBallLocation();
-
 
                 break;
         }
+        setTongueY();
+        setWaterBallLocation();
+        setFrogDefaultColor();
+        playerScore = 0;
     }
 
 
     // in game statement 
     if (gameStatement.currentStatement === gameStatement.gameStart) {
+
+        //set timer, the game will end after 1 minute 
+        if (setTimerOrNot) {
+
+            setTimeout(GameOverAfterminutes, playingTime);
+            setTimerOrNot = false;
+        }
+
+
         switch (gameStatement.MenuLevel) {
             case 1:
                 drawLevel1();
@@ -237,8 +286,8 @@ function draw() {
 
         drawFly(normalFly);
         drawFly(poisonFly);
-        drawFrog();
         drawWaterBall();
+        drawFrog();
         ScoreDisplay();
 
         moveFly(normalFly);
@@ -250,6 +299,16 @@ function draw() {
         checkTongueFlyOverlap(poisonFly);
         checkWaterBallFlyOverlap(normalFly);
         checkWaterBallFlyOverlap(poisonFly);
+        checkIfGameOver();
+
+        console.log("R: " + frog.body.R);
+        console.log("G: " + frog.body.G);
+        console.log("B: " + frog.body.B);
+    }
+
+    //game over statement 
+    if (gameStatement.currentStatement === gameStatement.gameOver) {
+        gameOverText();
     }
 
 }
@@ -387,6 +446,14 @@ function moveTongue() {
  */
 function drawFrog() {
 
+    frog.body.R = constrain(frog.body.R, 0, frog.body.defaultR);
+    frog.body.G = constrain(frog.body.G, 0, frog.body.defaultG);
+    frog.body.B = constrain(frog.body.B, 0, frog.body.defaultB);
+
+    frog.tongue.R = constrain(frog.tongue.R, 0, frog.tongue.defaultR);
+    frog.tongue.G = constrain(frog.tongue.G, 0, frog.tongue.defaultG);
+    frog.tongue.B = constrain(frog.tongue.B, 0, frog.tongue.defaultB);
+
 
     // Draw the frog's body
     if (gameStatement.MenuLevel == 1) {
@@ -396,14 +463,16 @@ function drawFrog() {
         frog.tongue.x = frog.body.x1;
 
         push();
-        fill("#ff0000");
+        fill(frog.tongue.R, frog.tongue.G, frog.tongue.B);
         noStroke();
         ellipse(frog.tongue.x, frog.tongue.y, frog.tongue.size);
         pop();
 
+
+
         // Draw the rest of the tongue
         push();
-        stroke("#ff0000");
+        stroke(frog.tongue.R, frog.tongue.G, frog.tongue.B);
         strokeWeight(frog.tongue.size);
         line(frog.tongue.x, frog.tongue.y, frog.body.x1, frog.body.y1);
         pop();
@@ -413,10 +482,11 @@ function drawFrog() {
         frog.body.x1 = mapLayout.level1_lotus[frog.body.locationX];
 
         push();
-        fill("#00ff00");
+        fill(frog.body.R, frog.body.G, frog.body.B);
         noStroke();
         ellipse(frog.body.x1, frog.body.y1, frog.body.size1);
         pop();
+
 
         //draw the frog's eyes 
         frog.eyes.x1 = frog.body.x1 - frog.body.size1 / 2.8;
@@ -427,12 +497,20 @@ function drawFrog() {
 
         frog.eyes.size = frog.body.size1 / 4;
 
-        console.log(frog.eyes.x1);
         push();
         fill(0);
         ellipse(frog.eyes.x1, frog.eyes.y1, frog.eyes.size);
         ellipse(frog.eyes.x2, frog.eyes.y2, frog.eyes.size);
         pop();
+
+        //color fading 
+        frog.tongue.R -= frog.body.fadingSpeed1;
+        frog.tongue.G -= frog.body.fadingSpeed1;
+        frog.tongue.B -= frog.body.fadingSpeed1;
+
+        frog.body.R -= frog.body.fadingSpeed1;
+        frog.body.G -= frog.body.fadingSpeed1;
+        frog.body.B -= frog.body.fadingSpeed1;
     }
 
     if (gameStatement.MenuLevel == 2) {
@@ -457,10 +535,12 @@ function drawFrog() {
         frog.body.x2 = mapLayout.level2_lotus[frog.body.locationX];
 
         push();
-        fill("#00ff00");
+        fill(frog.body.R, frog.body.G, frog.body.B);
         noStroke();
         ellipse(frog.body.x2, frog.body.y2, frog.body.size2);
         pop();
+
+
 
         //draw the frog's eyes 
         frog.eyes.x1 = frog.body.x2 - frog.body.size2 / 2.8;
@@ -477,7 +557,22 @@ function drawFrog() {
         ellipse(frog.eyes.x1, frog.eyes.y1, frog.eyes.size);
         ellipse(frog.eyes.x2, frog.eyes.y2, frog.eyes.size);
         pop();
+
+
+        //color fading 
+        frog.tongue.R -= frog.body.fadingSpeed2;
+        frog.tongue.G -= frog.body.fadingSpeed2;
+        frog.tongue.B -= frog.body.fadingSpeed2;
+
+        frog.body.R -= frog.body.fadingSpeed2;
+        frog.body.G -= frog.body.fadingSpeed2;
+        frog.body.B -= frog.body.fadingSpeed2;
     }
+
+    checkIfGameOver();
+
+
+
 
 }
 
@@ -490,17 +585,7 @@ function checkTongueFlyOverlap(fly) {
             // Get distance from tongue to fly
             const d = dist(frog.tongue.x, frog.tongue.y, fly.level1_X[i], fly.level1_Y[i]);
 
-            // Check if it's an overlap
-            const eaten = (d < frog.tongue.size / 2 + fly.size / 2);
-
-            if (eaten) {
-                // Reset the fly
-                resetFly(fly, gameStatement.MenuLevel, i);
-                fly.speed[i] = 0;
-                // Bring back the tongue
-                frog.tongue.state = "inbound";
-                playerScore += fly.score;
-            }
+            afterEating(fly, d, i);
         }
     }
     else {
@@ -508,17 +593,8 @@ function checkTongueFlyOverlap(fly) {
             // Get distance from tongue to fly
             const d = dist(frog.tongue.x, frog.tongue.y, fly.level2_X[i], fly.level2_Y[i]);
 
-            // Check if it's an overlap
-            const eaten = (d < frog.tongue.size / 2 + fly.size / 2);
+            afterEating(fly, d, i);
 
-            if (eaten) {
-                // Reset the fly
-                resetFly(fly, gameStatement.MenuLevel, i);
-                fly.speed[i] = 0;
-                // Bring back the tongue
-                frog.tongue.state = "inbound";
-                playerScore += fly.score;
-            }
         }
     }
 }
@@ -624,6 +700,12 @@ function keyReleased() {
             gameStatement.currentStatement = gameStatement.gameStart;
         }
     }
+
+    if (gameStatement.currentStatement == gameStatement.gameOver) {
+        if (keyCode === ENTER) {
+            gameStatement.currentStatement = gameStatement.menu;
+        }
+    }
 }
 
 function keyPressed() {
@@ -649,15 +731,7 @@ function keyPressed() {
                     frog.body.locationX += 1;
                 }
             }
-            //frog launch tongue in level1 (32 is 'space' key keycode)
-            if (keyCode == 32) {
-                if (frog.tongue.state === "idle") {
-                    frog.tongue.state = "outbound";
-                }
-                //debug
-                //console.log("press space")
 
-            }
 
 
         }
@@ -684,26 +758,31 @@ function keyPressed() {
                 }
             }
 
-            //frog launch tongue in level2
-            if (keyCode == 32) {
-                if (frog.tongue.state === "idle") {
-                    frog.tongue.state = "outbound";
-                }
+        }
 
-                //debug
-                //console.log("press space")
+        //frog launch tongue in level2
+        if (key.toLowerCase() === "c") {
+            if (frog.tongue.state === "idle") {
+                frog.tongue.state = "outbound";
+            }
+
+            //debug
+            //console.log("press space")
+
+        }
+
+        if (key.toLowerCase() === "x") {
+            if (frog.tongue.state === "idle") {
+                waterBall.state = "Launch";
 
             }
-        }
-    }
-
-    if (key.toLowerCase() === "x") {
-        if (frog.tongue.state === "idle") {
-            waterBall.state = "Launch";
 
         }
 
     }
+
+
+
 
 }
 
@@ -815,12 +894,21 @@ function checkWaterBallFlyOverlap(fly) {
                 setWaterBallLocation();
 
 
+
+
                 if (fly.score > 0) {
                     //you kill a normal fly 
                 }
                 else {
 
                     playerScore += -(fly.score);
+                    frog.body.R += level_add * 0.5;
+                    frog.body.G += level_add * 0.5;
+                    frog.body.B += level_add * 0.5;
+
+                    frog.tongue.R += level_add * 0.5;
+                    frog.tongue.G += level_add * 0.5;
+                    frog.tongue.B += level_add * 0.5;
                 }
             }
         }
@@ -849,11 +937,121 @@ function checkWaterBallFlyOverlap(fly) {
                 else {
 
                     playerScore += -(fly.score);
+                    frog.body.R += level_add * 0.5;
+                    frog.body.G += level_add * 0.5;
+                    frog.body.B += level_add * 0.5;
+
+                    frog.tongue.R += level_add * 0.5;
+                    frog.tongue.G += level_add * 0.5;
+                    frog.tongue.B += level_add * 0.5;
+
                 }
             }
         }
     }
 }
 
+
+function checkIfGameOver() {
+    if (frog.body.R <= 0 && frog.body.G <= 0 && frog.body.B <= 0) {
+        gameStatement.currentStatement = gameStatement.gameOver;
+    }
+}
+
+function setFrogDefaultColor() {
+    frog.body.R = frog.body.defaultR;
+    frog.body.G = frog.body.defaultG;
+    frog.body.B = frog.body.defaultB;
+
+    frog.tongue.R = frog.tongue.defaultR;
+    frog.tongue.G = frog.tongue.defaultG;
+    frog.tongue.B = frog.tongue.defaultB;
+}
+
+
+function gameOverText() {
+    if (frog.body.R <= 0 && frog.body.G <= 0 && frog.B <= 0) {
+
+        centerText("Your frog has survived");
+    }
+    else {
+        centerText("Your frog has starved to death");
+    }
+}
+
+function centerText(content) {
+    push();
+    textSize(40);
+    textAlign(CENTER)
+    text(content, width / 2, height / 2 - 45);
+
+    text("Your score is " + playerScore, width / 2, height / 2);
+
+    if (playerScore >= 0) {
+        text("Congratulations!!!", width / 2, height / 2 + 45);
+    }
+    else {
+        text("That's .... unexpected", width / 2, height / 2 + 45);
+    }
+
+    text("Press ENTER to continue", width / 2, height / 2 + 90);
+    pop();
+
+}
+
+function afterEating(fly, distant, i) {
+    // Check if it's an overlap
+    const eaten = (distant < frog.tongue.size / 2 + fly.size / 2);
+
+    if (eaten) {
+        // Reset the fly
+        resetFly(fly, gameStatement.MenuLevel, i);
+        fly.speed[i] = 0;
+
+        //add score and color 
+        playerScore += fly.score;
+
+        // Bring back the tongue
+        frog.tongue.state = "inbound";
+
+        if (fly.score >= 0) {
+
+            frog.body.R += level_add;
+            frog.body.G += level_add;
+            frog.body.B += level_add;
+
+            frog.tongue.R += level_add;
+            frog.tongue.G += level_add;
+            frog.tongue.B += level_add;
+        }
+        else {
+            if (gameStatement.MenuLevel == 1) {
+                frog.body.R += level1_substract;
+                frog.body.G += level1_substract;
+                frog.body.B += level1_substract;
+
+                frog.tongue.R += level1_substract;
+                frog.tongue.G += level1_substract;
+                frog.tongue.B += level1_substract;
+            }
+            else {
+                frog.body.R += level2_substract;
+                frog.body.G += level2_substract;
+                frog.body.B += level2_substract;
+
+                frog.tongue.R += level2_substract;
+                frog.tongue.G += level2_substract;
+                frog.tongue.B += level2_substract;
+            }
+
+        }
+    }
+
+
+}
+
+function GameOverAfterminutes() {
+    gameStatement.currentStatement = gameStatement.gameOver;
+}
 
 
