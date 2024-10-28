@@ -1,8 +1,14 @@
 /**
- * mod jam
+ * Frogue
  * Junming He
  * 
- * Let's add some fun things 
+ * Your frog is hungry, his color is fading
+ * try to eat as much as you can, but be careful of the green poison bugs and use waterball to eliminate them
+ * use ⬅ and ➡ to move the frog, key 'c' to launch your tongue, key 'x' to launch the water ball.
+ * eat a black bug will give you some value on color to help you survive, as well as gain 1 score.  
+ * eliminate a poison bug will get 1 score, but if you eat them, you lost some color and lost 1 score(depends on the level)
+ * the game will end in 1 minute unless your frog lost all his color in advance, try to get as high score as you can 
+ * have fun
  * 
  * Made with p5
  * https://p5js.org/
@@ -10,6 +16,7 @@
 
 "use strict";
 
+//game statement 
 let gameStatement = {
     currentStatement: undefined,
 
@@ -20,6 +27,7 @@ let gameStatement = {
     MenuLevel: 1
 }
 
+//map data 
 let mapLayout = {
     level1_lotus: [],
     level2_lotus: [],
@@ -245,14 +253,14 @@ function draw() {
             case 1:
 
                 drawLevel1();
-                menuText1();
+                menuText();
 
 
                 break;
 
             case 2:
                 drawLevel2();
-                menuText2();
+                menuText();
 
                 break;
         }
@@ -351,9 +359,7 @@ function moveFly(fly) {
 
 }
 
-/**
- * Draws the fly as a black circle
- */
+//draw fly
 function drawFly(fly) {
 
     //level 1 
@@ -384,9 +390,7 @@ function drawFly(fly) {
     }
 }
 
-/**
- * Resets the fly to the left with a random y
- */
+//reset the fly 
 function resetFly(fly, levelNumber, arrayNumber) {
     if (levelNumber == 1) {
         fly.level1_Y[arrayNumber] = 0;
@@ -397,26 +401,9 @@ function resetFly(fly, levelNumber, arrayNumber) {
 
 }
 
-/**
- * Moves the frog to the mouse position on x
- */
-function moveFrog() {
 
-    switch (gameStatement.MenuLevel) {
-        case 1:
-            //frog.body.x1 = mouseX;
-            break;
 
-        case 2:
-            //frog.body.x2 = mouseX;
-            break;
-    }
-
-}
-
-/**
- * Handles moving the tongue based on its state
- */
+//move the frog's tongue
 function moveTongue() {
 
     // If the tongue is idle, it doesn't do anything
@@ -442,10 +429,11 @@ function moveTongue() {
 }
 
 /**
- * Displays the tongue (tip and line connection) and the frog (body)
+ * draw frog's body, tongue
  */
 function drawFrog() {
 
+    //constrain the color
     frog.body.R = constrain(frog.body.R, 0, frog.body.defaultR);
     frog.body.G = constrain(frog.body.G, 0, frog.body.defaultG);
     frog.body.B = constrain(frog.body.B, 0, frog.body.defaultB);
@@ -657,7 +645,9 @@ function drawLevel2() {
 
 }
 
-function menuText1() {
+
+// texts on the menu page
+function menuText() {
     push();
     textSize(40);
     textAlign(CENTER)
@@ -666,15 +656,8 @@ function menuText1() {
     pop();
 }
 
-function menuText2() {
-    push();
-    textSize(40);
-    textAlign(CENTER)
-    text("Press ↑ or ↓ to choose level", width / 2, height / 2);
-    text("ENTRY to start", width / 2, height / 2 + 45);
-    pop();
-}
 
+// key setting 
 function keyReleased() {
     if (gameStatement.currentStatement === gameStatement.menu) {
 
@@ -786,6 +769,7 @@ function keyPressed() {
 
 }
 
+//set the location of the tongue tip 
 function setTongueY() {
     if (gameStatement.MenuLevel === 1) {
 
@@ -800,6 +784,7 @@ function setTongueY() {
     }
 }
 
+//display the score in the top right 
 function ScoreDisplay() {
     push();
     fill(255);
@@ -812,6 +797,7 @@ function ScoreDisplay() {
     pop();
 }
 
+//create fly according to parameter
 function createFly(size, color, maxspeed, minspeed, score) {
     let fly = {
 
@@ -834,6 +820,7 @@ function createFly(size, color, maxspeed, minspeed, score) {
     return fly;
 }
 
+//set the waterball launch location 
 function setWaterBallLocation() {
     if (gameStatement.MenuLevel == 1) {
         waterBall.y = frog.body.y1 - frog.body.size1 / 2.5;
@@ -847,7 +834,7 @@ function setWaterBallLocation() {
 
 
 
-
+// waterball values
 function drawWaterBall() {
     if (gameStatement.MenuLevel == 1 && waterBall.state == "idle") {
 
@@ -864,6 +851,8 @@ function drawWaterBall() {
     pop();
 }
 
+
+// water ball launch 
 function MoveWaterBall() {
 
     if (waterBall.state === "Launch") {
@@ -875,7 +864,7 @@ function MoveWaterBall() {
 
 }
 
-
+// water ball and flies overlap checking
 function checkWaterBallFlyOverlap(fly) {
     if (gameStatement.MenuLevel == 1) {
         for (let i = 0; i < 4; i++) {
@@ -900,7 +889,7 @@ function checkWaterBallFlyOverlap(fly) {
                     //you kill a normal fly 
                 }
                 else {
-
+                    //you kill a poison fly
                     playerScore += -(fly.score);
                     frog.body.R += level_add * 0.5;
                     frog.body.G += level_add * 0.5;
@@ -935,7 +924,7 @@ function checkWaterBallFlyOverlap(fly) {
 
                 }
                 else {
-
+                    //you kill a poison fly
                     playerScore += -(fly.score);
                     frog.body.R += level_add * 0.5;
                     frog.body.G += level_add * 0.5;
@@ -952,11 +941,13 @@ function checkWaterBallFlyOverlap(fly) {
 }
 
 
+//check if you lost all color 
 function checkIfGameOver() {
     if (frog.body.R <= 0 && frog.body.G <= 0 && frog.body.B <= 0) {
         gameStatement.currentStatement = gameStatement.gameOver;
     }
 }
+
 
 function setFrogDefaultColor() {
     frog.body.R = frog.body.defaultR;
@@ -969,13 +960,14 @@ function setFrogDefaultColor() {
 }
 
 
+//game over text
 function gameOverText() {
     if (frog.body.R <= 0 && frog.body.G <= 0 && frog.B <= 0) {
+        centerText("Your frog has starved to death");
 
-        centerText("Your frog has survived");
     }
     else {
-        centerText("Your frog has starved to death");
+        centerText("Your frog has survived");
     }
 }
 
@@ -998,6 +990,13 @@ function centerText(content) {
     pop();
 
 }
+
+/**
+ * eating checking
+ * 1.reset the fly
+ * 2.add or subtract score
+ * 3.add or subtract color 
+ */
 
 function afterEating(fly, distant, i) {
     // Check if it's an overlap
@@ -1050,6 +1049,7 @@ function afterEating(fly, distant, i) {
 
 }
 
+//game over after playing for certain time
 function GameOverAfterminutes() {
     gameStatement.currentStatement = gameStatement.gameOver;
 }
