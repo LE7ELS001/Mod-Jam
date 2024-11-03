@@ -144,6 +144,7 @@ let setTimerOrNot = true;
 
 //background music
 let BGM;
+let bgmIsPlaying;
 
 
 function preload() {
@@ -154,7 +155,7 @@ function preload() {
 function setup() {
     createCanvas(960, 640);
     BGM.setVolume(0.4);
-    BGM.loop();
+    bgmIsPlaying = false;
 
     //createflies
     normalFly = createFly(10, "black", 6, 2, 1);
@@ -283,6 +284,10 @@ function draw() {
 
     // in game statement 
     if (gameStatement.currentStatement === gameStatement.gameStart) {
+        if (!bgmIsPlaying) {
+            BGM.loop();
+            bgmIsPlaying = true;
+        }
 
         //set timer, the game will end after 1 minute 
         if (setTimerOrNot) {
