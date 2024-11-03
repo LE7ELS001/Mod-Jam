@@ -142,9 +142,19 @@ let level2_substract = 0.7;
 let playingTime = 60 * 1000;
 let setTimerOrNot = true;
 
+//background music
+let BGM;
+
+
+function preload() {
+    BGM = loadSound('../assets/sounds/background_music.mp3');
+}
+
 
 function setup() {
     createCanvas(960, 640);
+    BGM.setVolume(0.4);
+    BGM.loop();
 
     //createflies
     normalFly = createFly(10, "black", 6, 2, 1);
@@ -309,9 +319,11 @@ function draw() {
         checkWaterBallFlyOverlap(poisonFly);
         checkIfGameOver();
 
-        console.log("R: " + frog.body.R);
-        console.log("G: " + frog.body.G);
-        console.log("B: " + frog.body.B);
+
+        //debug
+        // console.log("R: " + frog.body.R);
+        // console.log("G: " + frog.body.G);
+        // console.log("B: " + frog.body.B);
     }
 
     //game over statement 
@@ -500,8 +512,7 @@ function drawFrog() {
         frog.body.G -= frog.body.fadingSpeed1;
         frog.body.B -= frog.body.fadingSpeed1;
     }
-
-    if (gameStatement.MenuLevel == 2) {
+    else if (gameStatement.MenuLevel == 2) {
         // Draw the tongue tip
         frog.tongue.x = frog.body.x2;
 
@@ -718,8 +729,7 @@ function keyPressed() {
 
 
         }
-
-        if (gameStatement.MenuLevel == 2) {
+        else if (gameStatement.MenuLevel == 2) {
 
             //frog move left in level2
             if (keyCode == LEFT_ARROW) {
