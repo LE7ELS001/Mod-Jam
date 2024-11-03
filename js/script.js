@@ -147,7 +147,7 @@ let BGM;
 
 
 function preload() {
-    BGM = loadSound('../assets/sounds/background_music.mp3');
+    BGM = loadSound('assets/sounds/background_music.mp3');
 }
 
 
